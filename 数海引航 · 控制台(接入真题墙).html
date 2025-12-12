@@ -1,0 +1,1160 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<title>数海引航 · 控制台(接入真题墙)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<!-- 画风：改为与截图相近的浅色+手写标题风 -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* 浅色主题（接近截图风格） */
+  --bg:#f5f7fb; --card:#ffffff; --muted:#6b7280; --text:#111827; --pri:#3b82f6;
+  --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444; --line:#e5e7eb; --chip:#eef2ff; --aside:#ffffff;
+  --ink:#334155; --soft:#f1f5f9;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;font:14px/1.6 "Noto Sans SC",-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+  background:linear-gradient(180deg,#f8fafc 0%,#f5f7fb 100%);color:var(--text)
+}
+a{color:inherit;text-decoration:none}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+aside{
+  background:var(--aside);border-right:1px solid var(--line);padding:14px;position:sticky;top:0;height:100vh;overflow:auto
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;margin-bottom:10px}
+.brand .mark{
+  font-family:"ZCOOL KuaiLe",cursive; font-size:20px; letter-spacing:1px; color:#1f2937; display:flex; align-items:center; gap:8px
+}
+.brand .mark .seal{
+  width:26px;height:26px;border-radius:6px;background:#2563eb;color:#fff;display:grid;place-items:center;font-weight:900;box-shadow:0 2px 6px rgba(37,99,235,.35)
+}
+.nav{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.nav button{
+  display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;color:var(--text);
+  padding:10px 12px;border-radius:12px;cursor:pointer;text-align:left;box-shadow:0 1px 0 rgba(0,0,0,.02)
+}
+.nav .active{background:#e8f0fe;border-color:#c7d2fe}
+.nav .muted{color:var(--muted)}
+main{padding:18px}
+.section{max-width:none;margin:18px 0 0 0}
+.grid{display:grid;gap:12px}
+.grid.auto-2{grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}
+.grid.auto-3{grid-template-columns:repeat(auto-fit,minmax(380px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 2px 6px rgba(15,23,42,.04)}
+.flex{display:flex;align-items:center;gap:8px}
+.right{margin-left:auto}
+.muted{color:var(--muted)}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);padding:7px 12px;border-radius:10px;background:#fff;color:var(--text);cursor:pointer
+}
+.btn.primary{background:var(--pri);border-color:transparent;color:#fff}
+.chart{height:300px;width:100%;min-width:300px;background:var(--soft);border:1px dashed var(--line);border-radius:10px}
+textarea,input,select{
+  width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;color:var(--text);padding:9px
+}
+.kpi{font-size:28px;font-weight:800}
+.chip{background:var(--chip);border:1px solid #c7d2fe;padding:2px 8px;border-radius:999px;font-size:12px;color:#1e3a8a}
+.match{border:1px dashed var(--line);border-radius:10px;padding:10px;background:#fff}
+.avatar{width:28px;height:28px;display:inline-grid;place-items:center;background:#dbeafe;border-radius:50%;font-size:12px;color:#1e3a8a;font-weight:700}
+.nowrap{white-space:nowrap}
+.toptools{display:flex;gap:8px;justify-content:flex-end;margin-bottom:8px}
+.dropdown{position:relative}
+.dropdown-menu{
+  position:absolute;right:0;top:calc(100% + 8px);min-width:260px;background:var(--card);
+  border:1px solid var(--line);border-radius:12px;padding:8px;display:none;z-index:25;box-shadow:0 8px 24px rgba(0,0,0,.08)
+}
+.dropdown.open .dropdown-menu{display:block}
+.notice{display:flex;gap:8px;padding:8px;border-radius:8px}
+.notice:hover{background:#f8fafc}
+.badge{background:var(--bad);color:#fff;border-radius:8px;padding:0 6px;font-size:12px}
+
+.header{
+  position:sticky;top:0;z-index:15;background:rgba(255,255,255,.8);backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);padding:10px 16px;display:flex;align-items:center;gap:12px
+}
+.header .title{
+  margin:0 auto;font-family:"ZCOOL KuaiLe",cursive;font-size:22px;color:var(--ink);display:flex;align-items:center;gap:10px
+}
+.header .title small{font:12px/1 monospace;color:#475569;background:#e2e8f0;border-radius:6px;padding:2px 6px}
+
+/* 聊天抽屉：改为可选联系人+会话区，真正可用(本地持久+多标签同步) */
+.drawer{
+  position:fixed;right:-420px;top:0;height:100%;width:420px;background:var(--card);
+  border-left:1px solid var(--line);transition:right .25s ease;z-index:30;display:flex;flex-direction:column;box-shadow:-6px 0 18px rgba(0,0,0,.08)
+}
+.drawer.open{right:0}
+.chat-head{padding:12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.chat-body{flex:1;overflow:auto;padding:12px;display:grid;grid-template-columns:140px 1fr;gap:8px}
+.chat-list{border-right:1px solid var(--line);padding-right:8px;overflow:auto}
+.chat-item{max-width:100%;padding:8px 10px;border-radius:10px}
+.message{display:flex;flex-direction:column;gap:6px}
+.msg{max-width:85%;padding:8px 10px;border-radius:10px}
+.msg.me{align-self:flex-end;background:#dbeafe;color:#1e3a8a}
+.msg.you{align-self:flex-start;background:#f1f5f9}
+.chat-input{padding:12px;border-top:1px solid var(--line);display:flex;gap:8px}
+.contact{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;cursor:pointer}
+.contact.active,.contact:hover{background:#f8fafc}
+.contact .ct-name{font-weight:700;color:#334155}
+.requires-mask{position:relative}
+.requires-mask::after{
+  content:'需先配置 API';position:absolute;inset:0;background:rgba(0,0,0,.05);
+  display:flex;align-items:center;justify-content:center;border-radius:12px;font-weight:700;color:#0f172a
+}
+.defense-score{font-size:20px;font-weight:700}
+.score-excellent{color:#22c55e}
+.score-good{color:#2563eb}
+.score-fair{color:#f59e0b}
+.score-poor{color:#ef4444}
+
+/* 真题墙嵌入模块样式（截图风格） */
+.zhen-header{
+  display:flex;align-items:center;gap:12px;padding:8px 10px;background:#ffffff;border:1px solid var(--line);border-radius:12px
+}
+.zhen-header .logo{
+  display:flex;align-items:center;gap:8px;font-family:"ZCOOL KuaiLe",cursive;color:#111827
+}
+.zhen-header .logo b{font-size:22px}
+.zhen-iframe{
+  width:100%;height:520px;border:1px solid var(--line);border-radius:12px;background:#fff
+}
+.hint{font-size:12px;color:var(--muted);margin-top:4px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+</head>
+<body>
+<!-- 顶部标题条（手写风） -->
+<div class="header">
+  <div class="title">
+    <span style="background:#2563eb;color:#fff;border-radius:8px;padding:2px 8px">真题墙</span>
+    <span>数海引航</span>
+    <small>zhentiqiang.com</small>
+  </div>
+  <div class="right"></div>
+</div>
+
+<!-- 登录/注册 -->
+<div id="auth" class="auth" aria-modal="true" role="dialog" style="position:fixed;inset:0;background:linear-gradient(180deg,#ffffff,transparent),rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:50">
+  <div class="panel" style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;width:min(520px,92vw);box-shadow:0 12px 36px rgba(0,0,0,.12)">
+    <div class="flex" style="justify-content:space-between">
+      <b style="font-size:18px">数海引航 · 账户</b>
+      <span class="muted">演示环境(本地存储)</span>
+    </div>
+    <div class="tabs" style="display:flex;gap:8px;margin:12px 0">
+      <button id="tabLogin" class="active" onclick="AuthUI.switchTab('login')" style="flex:1;border-radius:12px;border:1px solid var(--line);background:#e8f0fe;padding:10px;color:#1e3a8a;cursor:pointer">登录</button>
+      <button id="tabRegister" onclick="AuthUI.switchTab('register')" style="flex:1;border-radius:12px;border:1px solid var(--line);background:#fff;padding:10px;cursor:pointer">注册</button>
+    </div>
+    <div id="loginForm">
+      <label>邮箱</label>
+      <input id="loginUser" placeholder="demo@example.com"/>
+      <label style="margin-top:8px">密码</label>
+      <input id="loginPass" type="password" placeholder="至少 6 位"/>
+      <label style="margin-top:8px">API Key(可选)</label>
+      <input id="loginAPI" placeholder="例如:sk-xxxx(登录时直接生效)"/>
+      <div class="flex" style="justify-content:space-between;margin-top:10px">
+        <div class="flex" style="gap:6px"><input id="remember" type="checkbox"/><label for="remember" class="muted">记住登录</label></div>
+        <button class="btn primary" onclick="authLogin()">登录</button>
+      </div>
+      <div class="hint">演示账号: demo@example.com / 123456</div>
+    </div>
+    <div id="registerForm" class="collapse" style="display:none">
+      <label>昵称</label>
+      <input id="regName" placeholder="你的昵称"/>
+      <label style="margin-top:8px">邮箱</label>
+      <input id="regMail" placeholder="you@example.com"/>
+      <label style="margin-top:8px">密码</label>
+      <input id="regPass" type="password" placeholder="至少 6 位,包含字母与数字"/>
+      <label style="margin-top:8px">API Key(选填)</label>
+      <input id="regAPI" placeholder="例如:sk-xxxx(用于依赖接口的功能)"/>
+      <div class="flex" style="justify-content:flex-end;margin-top:10px">
+        <button class="btn primary" onclick="authRegister()">注册</button>
+      </div>
+      <div class="hint">不填也可注册;但部分功能将被禁用,待设置 API 后可用。</div>
+    </div>
+  </div>
+</div>
+
+<!-- 应用 -->
+<div class="app" id="app" style="visibility:hidden">
+  <aside>
+    <div class="brand">
+      <div class="mark"><span class="seal">题</span><b>数海引航 · 控制台</b></div>
+    </div>
+    <div class="nav" id="nav">
+      <button class="active" data-go="overview" onclick="go('overview',this)">仪表盘</button>
+      <button data-go="matching" onclick="go('matching',this)">智能组队</button>
+      <button data-go="review" onclick="go('review',this)">代码审查</button>
+      <button data-go="paper" onclick="go('paper',this)">论文助手</button>
+      <button data-go="rag" onclick="go('rag',this)">赛题解析</button>
+      <button data-go="simulate" onclick="go('simulate',this)">真题练习</button>
+      <button data-go="community" onclick="go('community',this)">社区</button>
+      <button data-go="market" onclick="go('market',this)">市场&财务</button>
+      <button data-go="settings" onclick="openAPIModal()">API 设置</button>
+      <div class="muted" style="margin-top:6px;font-size:12px">已登录:<span id="who"></span></div>
+      <button class="btn" style="margin-top:8px" onclick="logout()">退出</button>
+    </div>
+  </aside>
+  <main>
+    <div class="toptools">
+      <div class="dropdown" id="notifyDrop">
+        <button class="btn" onclick="UI.toggleDropdown('notifyDrop')">🔔 通知 <span class="badge" id="notifyCount">3</span></button>
+        <div class="dropdown-menu">
+          <div class="notice"><span class="avatar">A</span><div><div>算法赛队友 <b>张思源</b> 申请加入</div><div class="muted" style="font-size:12px">2 分钟前</div></div></div>
+          <div class="notice"><span class="avatar">S</span><div><div>「代码审查」发现 1 个性能改进建议</div><div class="muted" style="font-size:12px">7 分钟前</div></div></div>
+          <div class="notice"><span class="avatar">C</span><div><div>社区问题获得 2 个新回复</div><div class="muted" style="font-size:12px">12 分钟前</div></div></div>
+        </div>
+      </div>
+      <button class="btn" onclick="UI.toggleChat()">💬 聊天</button>
+    </div>
+
+    <!-- 概览 -->
+    <section id="overview" class="section">
+      <div class="grid auto-2">
+        <div class="card">
+          <div class="flex"><h3>增长曲线</h3><span class="muted">演示数据</span></div>
+          <div id="chart-growth" class="chart" data-chart="growth"></div>
+          <div class="right toolbar"><button class="btn" onclick="ChartManager.exportPNG('chart-growth')">导出PNG</button></div>
+        </div>
+        <div class="card">
+          <div class="flex"><h3>功能使用占比</h3><span class="muted">近30天</span></div>
+          <div id="chart-usage" class="chart" data-chart="usage"></div>
+          <div class="right toolbar"><button class="btn" onclick="ChartManager.exportPNG('chart-usage')">导出PNG</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 智能组队 -->
+    <section id="matching" class="section" style="display:none">
+      <div class="grid auto-2">
+        <div class="card">
+          <h3>我的能力雷达(六维)</h3>
+          <div id="chart-radar" class="chart" data-chart="radar"></div>
+          <div class="grid auto-3">
+            <div><label>算法</label><input type="range" min="0" max="100" value="70" class="skill" data-i="0"></div>
+            <div><label>编程</label><input type="range" min="0" max="100" value="75" class="skill" data-i="1"></div>
+            <div><label>数据</label><input type="range" min="0" max="100" value="60" class="skill" data-i="2"></div>
+            <div><label>写作</label><input type="range" min="0" max="100" value="55" class="skill" data-i="3"></div>
+            <div><label>建模</label><input type="range" min="0" max="100" value="65" class="skill" data-i="4"></div>
+            <div><label>可视</label><input type="range" min="0" max="100" value="50" class="skill" data-i="5"></div>
+          </div>
+          <div class="toolbar" style="margin-top:8px">
+            <button class="btn primary" onclick="matchTeammates()">开始匹配</button>
+            <span class="muted">算法:余弦相似 + 互补度(写作/可视化权重↑)</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="flex"><h3>推荐队友(Top 6)</h3><span class="muted">(支持一键私聊)</span></div>
+          <div id="matchList" class="grid auto-2"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 代码审查(依赖 API) -->
+    <section id="review" class="section" style="display:none" data-requires-api="true">
+      <div class="grid auto-2">
+        <div class="card">
+          <div class="flex">
+            <h3>代码审查助手</h3>
+            <select id="lang" style="width:auto;margin-left:auto;">
+              <option>Python</option><option>Java</option>
+            </select>
+          </div>
+          <textarea id="code" rows="14" placeholder="# 粘贴你的代码,点击运行审查
+
+def two_sum(nums, target):
+    for i in range(len(nums)):
+        for j in range(i+1, len(nums)): # O(n^2)
+            if nums[i] + nums[j] == target:
+                return [i, j]
+    return []"></textarea>
+          <div class="toolbar" style="margin-top:8px">
+            <button class="btn primary" onclick="runReview()">运行审查</button>
+            <button class="btn" onclick="insertSnippet()">插入示例</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3>审查结果与修复建议</h3>
+          <div id="reviewOut"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 论文助手(可用:离线骨架与 LaTeX;AI 段落为可选项) -->
+    <section id="paper" class="section" style="display:none">
+      <div class="grid auto-2">
+        <div class="card">
+          <h3>论文骨架与 LaTeX 模板</h3>
+          <div class="grid auto-3">
+            <div><label>赛事类型</label>
+              <select id="contest">
+                <option value="mcm">数学建模</option>
+                <option value="bigdata">大数据</option>
+                <option value="algo">算法设计</option>
+              </select>
+            </div>
+            <div><label>模板</label>
+              <select id="tpl">
+                <option value="ieee">IEEE</option>
+                <option value="acm">ACM</option>
+                <option value="generic">期刊通用</option>
+              </select>
+            </div>
+            <div><label>语言</label>
+              <select id="lang2">
+                <option value="cn">中文</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+          </div>
+          <div class="toolbar" style="margin-top:8px">
+            <button class="btn primary" onclick="genPaper()">生成骨架与 LaTeX</button>
+            <button class="btn" onclick="downloadTex()">导出 .tex</button>
+            <span class="muted">离线可用;可直接生成可编译模板。</span>
+          </div>
+          <pre id="paperOut" style="white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;min-height:160px">选择参数后点击"生成"。</pre>
+          <div class="toolbar" style="margin-top:8px">
+            <input id="paperTitle" placeholder="可选:论文标题(用于 LaTeX)"/>
+            <input id="paperAuthors" placeholder="可选:作者(逗号分隔)"/>
+          </div>
+        </div>
+        <div class="card" data-requires-api="true">
+          <h3>AI 段落生成(可选)</h3>
+          <div class="grid auto-3">
+            <div>
+              <label>章节</label>
+              <select id="secPick">
+                <option value="abstract">摘要</option>
+                <option value="intro">引言</option>
+                <option value="method">方法</option>
+                <option value="experiment">实验</option>
+                <option value="conclusion">结论</option>
+              </select>
+            </div>
+            <div>
+              <label>关键词</label>
+              <input id="secKW" placeholder="逗号分隔,如: 覆盖,容量,预算"/>
+            </div>
+            <div>
+              <label>目标读者</label>
+              <select id="aud">
+                <option value="reviewer">评审</option>
+                <option value="student">学生</option>
+                <option value="industry">产业</option>
+              </select>
+            </div>
+          </div>
+          <textarea id="secCtx" rows="6" placeholder="可选:给出数据集、指标与方法要点(将融合到段落中)"></textarea>
+          <div class="toolbar" style="margin-top:8px">
+            <button class="btn primary" onclick="genSection()">生成段落</button>
+            <span class="muted">未配置 API 时将提示配置;配置后可用(演示生成)。</span>
+          </div>
+          <pre id="secOut" style="white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;min-height:120px">用于草拟某一章节的段落。</pre>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>章节规划</h3>
+        <div class="grid auto-3">
+          <span class="chip">摘要</span><span class="chip">引言</span><span class="chip">相关工作</span>
+          <span class="chip">方法</span><span class="chip">实验</span><span class="chip">结论</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 赛题解析 -->
+    <section id="rag" class="section" style="display:none">
+      <div class="grid auto-2">
+        <div class="card">
+          <h3>赛题解析 · 输入</h3>
+          <textarea id="ragInput" rows="10" placeholder="粘贴赛题描述、约束、指标等..."></textarea>
+          <div class="toolbar" style="margin-top:8px">
+            <button class="btn primary" onclick="analyzeRAG()">生成要点与结构</button>
+            <span class="muted">提取实体/约束/目标,绘制输入结构图</span>
+          </div>
+          <div id="ragOut" class="muted" style="margin-top:8px">等待输入...</div>
+        </div>
+        <div class="card">
+          <div class="flex"><h3>输入结构</h3><span class="muted">Sankey(演示)</span></div>
+          <div id="c-input-structure" class="chart" data-chart="inputstruct"></div>
+          <div class="right toolbar"><button class="btn" onclick="ChartManager.exportPNG('c-input-structure')">导出PNG</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 真题练习：用真题墙替换原“历年真题回溯”小模块，保持其他不变 -->
+    <section id="simulate" class="section" style="display:none">
+      <div class="grid auto-2">
+        <!-- 真题墙嵌入 -->
+        <div class="card">
+          <div class="zhen-header">
+            <div class="logo"><span class="avatar" style="background:#1e293b;color:#fff">墙</span><b>真题墙</b><span class="muted">zhentiqiang.com</span></div>
+            <div class="right toolbar">
+              <label class="muted nowrap">模式</label>
+              <select id="zhenMode" style="width:auto">
+                <option value="home">首页(全部)</option>
+                <option value="math">考研数学</option>
+                <option value="english">英语</option>
+                <option value="cs">计算机/算法</option>
+              </select>
+              <button class="btn" onclick="openZhentiInNew()">新标签打开</button>
+            </div>
+          </div>
+          <iframe id="zhenFrame" class="zhen-iframe" src="https://zhentiqiang.com/" referrerpolicy="no-referrer" sandbox="allow-scripts allow-forms allow-same-origin allow-popups"></iframe>
+          <div class="hint">说明: 该站可能限制 iframe 加载；若显示受限，请点击“新标签打开”。</div>
+        </div>
+
+        <!-- 倒计时与压力测试（原样保留） -->
+        <div class="card">
+          <h3>倒计时与压力测试</h3>
+          <div class="grid auto-2" style="margin-bottom:10px">
+            <div>
+              <label>设置时间(小时)</label>
+              <input type="number" id="timeInput" min="1" max="24" value="8" style="width:100%"/>
+            </div>
+            <div>
+              <label>压力测试</label>
+              <select id="stress">
+                <option value="none">无</option>
+                <option value="time">时间压缩(-30%)</option>
+                <option value="noise">数据污染(5%噪声)</option>
+                <option value="change">需求变更(新增约束)</option>
+                <option value="all">综合压力测试</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex">
+            <div style="font-size:28px;font-weight:900" id="timer">08:00:00</div>
+          </div>
+          <div class="toolbar" style="margin-top:8px">
+            <button class="btn primary" onclick="startTimer()">开始</button>
+            <button class="btn" onclick="pauseTimer()">暂停</button>
+            <button class="btn" onclick="resetTimer()">重置</button>
+          </div>
+        </div>
+
+        <!-- 答辩模拟（原样保留） -->
+        <div class="card">
+          <h3>答辩模拟</h3>
+          <div id="defenseQuestion" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:10px;min-height:80px">
+            请点击"生成问题"开始答辩模拟...
+          </div>
+          <textarea id="defenseAnswer" rows="4" placeholder="在此输入您的答辩回答..."></textarea>
+          <div class="toolbar" style="margin-top:8px">
+            <button class="btn primary" onclick="generateQuestion()">生成问题</button>
+            <button class="btn" onclick="submitDefense()">提交回答</button>
+            <button class="btn" onclick="recordVideo()">📹 录制视频</button>
+          </div>
+          <div id="defenseResult" style="margin-top:10px;display:none">
+            <div class="flex"><b>答辩评分</b><span id="defenseScore" class="defense-score score-excellent">92/100</span></div>
+            <pre id="defenseFeedback" style="white-space:pre-wrap;background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;font-size:12px">
+维度评估:
+- 逻辑性: 9/10 ✓ 逻辑清晰,论证严密
+- 准确性: 9/10 ✓ 回答准确,数据可靠
+- 流畅度: 9/10 ✓ 表达流畅,节奏适中
+- 应对能力: 8/10 ✓ 对追问反应迅速
+
+改进建议:
+1. 增加更多实际案例支撑
+2. 优化开场白,吸引评委注意
+3. 肢体语言可更自然些
+</pre>
+          </div>
+        </div>
+
+        <!-- 评分与建议（原样保留） -->
+        <div class="card" style="grid-column:span 2">
+          <h3>综合评分与建议</h3>
+          <textarea id="simInput" rows="6" placeholder="简要描述你的方法与实验结果..."></textarea>
+          <div class="grid auto-3" style="margin-top:8px">
+            <div class="card"><div class="muted">算法设计</div><div class="kpi" id="scoreAlgo" style="color:#16a34a">---</div></div>
+            <div class="card"><div class="muted">实现质量</div><div class="kpi" id="scoreImpl" style="color:#2563eb">---</div></div>
+            <div class="card"><div class="muted">答辩表现</div><div class="kpi" id="scoreDefense" style="color:#a78bfa">---</div></div>
+          </div>
+          <div id="advice" style="margin-top:12px;padding:10px;background:#fff;border:1px solid var(--line);border-radius:8px">
+            提交后生成针对性改进建议。
+          </div>
+          <div class="toolbar" style="margin-top:8px">
+            <button class="btn primary" onclick="evaluate()">提交综合评分</button>
+            <button class="btn" onclick="generateReport()">📊 生成详细报告</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 社区 -->
+    <section id="community" class="section" style="display:none">
+      <div class="grid auto-2">
+        <div class="card"><h3>最新问答</h3><div id="qaList" class="grid"></div></div>
+        <div class="card"><h3>发布问题</h3>
+          <input id="qaTitle" placeholder="如:LSTM 对长序列的改进?"/>
+          <textarea id="qaText" rows="6" placeholder="描述你的问题或给出最小复现..."></textarea>
+          <div class="toolbar">
+            <button class="btn primary" onclick="postQA()">发布(+10算力)</button>
+            <span class="muted">请脱敏非公开数据与涉密内容</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 市场与财务 -->
+    <section id="market" class="section" style="display:none">
+      <div class="grid auto-3">
+        <div class="card"><h3>财务趋势(营收/成本/净利)</h3><div id="c-finance" class="chart" data-chart="finance"></div></div>
+        <div class="card"><h3>收入结构</h3><div id="c-rev" class="chart" data-chart="rev"></div></div>
+        <div class="card"><h3>成本结构</h3><div id="c-cost" class="chart" data-chart="cost"></div></div>
+        <div class="card"><h3>TAM / SAM / SOM</h3><div id="c-tam" class="chart" data-chart="tam"></div></div>
+        <div class="card"><h3>获客漏斗</h3><div id="c-funnel" class="chart" data-chart="funnel"></div></div>
+        <div class="card"><h3>留存 Cohort(热力)</h3><div id="c-cohort" class="chart" data-chart="cohort"></div></div>
+        <div class="card"><h3>盈亏瀑布</h3><div id="c-waterfall" class="chart" data-chart="waterfall"></div></div>
+        <div class="card"><h3>用户增长预测</h3><div id="c-users" class="chart" data-chart="users"></div></div>
+        <div class="card"><h3>竞品对比(雷达)</h3><div id="c-radar-competitor" class="chart" data-chart="rc"></div></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- 聊天抽屉(真正可用: 私聊联系人 + 本地持久 + 多标签同步) -->
+<aside id="chatDrawer" class="drawer" aria-hidden="true">
+  <div class="chat-head">
+    <strong>团队聊天</strong>
+    <span class="muted">(Esc 关闭)</span>
+    <span class="right"></span>
+    <button class="btn" onclick="UI.toggleChat()">关闭</button>
+  </div>
+  <div class="chat-body">
+    <div class="chat-list" id="chatList"></div>
+    <div class="message">
+      <div id="messageBox" style="display:flex;flex-direction:column;gap:8px;overflow:auto"></div>
+    </div>
+  </div>
+  <div class="chat-input">
+    <input id="chatText" placeholder="输入消息,回车发送"/>
+    <button class="btn primary" onclick="ChatUI.send()">发送</button>
+  </div>
+</aside>
+
+<!-- API 设置弹窗 -->
+<div id="apiModal" class="auth" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);align-items:center;justify-content:center;z-index:50">
+  <div class="panel" style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;width:min(520px,92vw)">
+    <div class="flex" style="justify-content:space-between">
+      <b style="font-size:18px">API 设置</b>
+      <button class="btn" onclick="closeAPIModal()">关闭</button>
+    </div>
+    <label style="margin-top:8px">API Key</label>
+    <input id="apiKeyInput" placeholder="例如:sk-xxxx"/>
+    <div class="flex" style="justify-content:flex-end;margin-top:10px">
+      <button class="btn primary" onclick="saveAPI()">保存</button>
+    </div>
+    <div class="hint">保存后,依赖 API 的功能将自动解锁。</div>
+  </div>
+</div>
+
+<script>
+// ========== UI:通知/聊天 ==========
+const UI={
+  toggleDropdown(id){
+    const el=document.getElementById(id);
+    el.classList.toggle('open');
+    document.addEventListener('click',function once(e){
+      if(!el.contains(e.target)){ el.classList.remove('open'); document.removeEventListener('click',once); }
+    });
+  },
+  toggleChat(){
+    const d=document.getElementById('chatDrawer');
+    d.classList.toggle('open');
+    if(d.classList.contains('open')) ChatUI.refresh();
+  }
+};
+window.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ document.getElementById('chatDrawer').classList.remove('open'); }});
+
+// ========== 导航 ==========
+function go(id,btn){
+  document.querySelectorAll('main .section').forEach(s=>s.style.display='none');
+  const sec=document.getElementById(id); 
+  if(sec) {
+      sec.style.display='';
+      setTimeout(()=>{ ChartManager.initSection(id); },100);
+  }
+  document.querySelectorAll('aside .nav button').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
+
+// ========== ECharts 管理 ==========
+const ChartManager=(function(){
+  const cache=new Map();
+  function mount(el, option){
+    if(!el) return;
+    const oldChart = cache.get(el.id);
+    if(oldChart && !oldChart.isDisposed()) oldChart.dispose();
+    const chart=echarts.init(el,null,{renderer:'canvas'});
+    chart.setOption(option);
+    cache.set(el.id, chart);
+    setTimeout(()=>chart.resize(),50);
+  }
+  function line(labels,series){
+    return {tooltip:{trigger:'axis'},legend:{bottom:0},grid:{left:40,right:20,top:20,bottom:40},
+    xAxis:{type:'category',data:labels},yAxis:{type:'value'},
+    series:series.map(s=>({type:'line',name:s.name,data:s.data,smooth:true,areaStyle:{opacity:.15},lineStyle:{color:s.color}}))};
+  }
+  function pie(data,colors){
+    return {tooltip:{trigger:'item'},legend:{bottom:0},
+    series:[{type:'pie',radius:['40%','70%'],data,itemStyle:{color:(p)=>colors?colors[p.dataIndex]:null}}]};
+  }
+  const gens={
+    growth(){return line(['M1','M2','M3','M4','M5','M6','M7','M8','M9','M10','M11','M12'],[{name:'DAU',data:[1200,1300,1500,1700,2100,2400,2600,3000,3600,4200,5000,6100],color:'#22c55e'}]);},
+    usage(){return pie([{name:'组队',value:28},{name:'审查',value:26},{name:'论文',value:18},{name:'模拟',value:14},{name:'社区',value:9},{name:'市场',value:5}],['#22c55e','#60a5fa','#f59e0b','#a78bfa','#ef4444','#10b981']);},
+    radar(){return {legend:{bottom:0},radar:{indicator:[{name:'智能组队',max:100},{name:'代码审查',max:100},{name:'论文辅助',max:100},{name:'赛题解析',max:100},{name:'社区',max:100},{name:'实战模拟',max:100}]},series:[{type:'radar',data:[{name:'数海引航',value:[85,80,78,82,75,74]}]}]};},
+    finance(){return {tooltip:{trigger:'axis'},legend:{bottom:0},grid:{left:40,right:20,top:20,bottom:40},xAxis:{type:'category',data:['2025Q1','2025Q2','2025Q3','2025Q4','2026Q1','2026Q2']},yAxis:{type:'value'},series:[{name:'营收',type:'line',smooth:true,areaStyle:{opacity:.12},data:[120,138,160,190,230,260],lineStyle:{color:'#22c55e'}},{name:'成本',type:'line',smooth:true,areaStyle:{opacity:.08},data:[70,76,84,95,110,125],lineStyle:{color:'#ef4444'}},{name:'净利',type:'bar',data:[50,62,76,95,120,135],itemStyle:{color:'#60a5fa'}}]};},
+    rev(){return pie([{name:'SaaS订阅',value:55},{name:'企业服务',value:25},{name:'教育培训',value:12},{name:'增值与其他',value:8}],['#22c55e','#60a5fa','#a78bfa','#f59e0b']);},
+    cost(){return pie([{name:'人力',value:48},{name:'云资源',value:22},{name:'市场',value:15},{name:'其他',value:15}],['#ef4444','#10b981','#60a5fa','#94a3b8']);},
+    tam(){return {tooltip:{trigger:'axis'},legend:{bottom:0},grid:{left:40,right:20,top:20,bottom:40},xAxis:{type:'category',data:['TAM','SAM','SOM']},yAxis:{type:'value'},series:[{name:'规模(百万)',type:'bar',data:[1200,320,85],itemStyle:{color:'#a78bfa'}}]};},
+    funnel(){return {tooltip:{trigger:'item'},series:[{type:'funnel',left:'5%',width:'90%',label:{show:true,position:'inside'},data:[{value:100,name:'访问'},{value:62,name:'注册'},{value:38,name:'激活'},{value:21,name:'付费'},{value:12,name:'留存'}]}]};},
+    cohort(){const weeks=['W1','W2','W3','W4','W5','W6','W7','W8'];const cohorts=['1月','2月','3月','4月','5月','6月'];const data=[];for(let i=0;i<cohorts.length;i++){for(let j=0;j<weeks.length;j++){const base=90-i*8-j*5; data.push([j,i,Math.max(5,Math.min(95,base))]);}}return {tooltip:{position:'top'},grid:{left:60,right:20,top:20,bottom:40},xAxis:{type:'category',data:weeks,splitArea:{show:true}},yAxis:{type:'category',data:cohorts,splitArea:{show:true}},visualMap:{min:0,max:100,calculable:false,orient:'horizontal',left:'center',bottom:0},series:[{type:'heatmap',data,dataLabels:false}]};},
+    waterfall(){const items=[{name:'起始',val:200},{name:'营收',val:+120},{name:'成本',val:-70},{name:'营销',val:-25},{name:'其他',val:-10},{name:'期末',val:0}];const cats=items.map(i=>i.name);const data=items.map(i=>i.val);const acc=[];let sum=0;for(let i=0;i<data.length;i++){if(i===0){acc.push(0); sum=data[i]; continue;}acc.push(Math.max(0,sum));sum+=data[i];}const real=data.map((v,i)=>{if(i===0) return 0;if(i===data.length-1) return sum;return Math.abs(v);});const colors=(p)=> (p.dataIndex===0||p.dataIndex===data.length-1)?'#60a5fa':(data[p.dataIndex]>=0?'#22c55e':'#ef4444');return {tooltip:{trigger:'axis'},xAxis:{type:'category',data:cats},yAxis:{type:'value'},series:[{type:'bar',stack:'t',itemStyle:{borderColor:'transparent',color:'transparent'},data:acc},{type:'bar',stack:'t',data:real,itemStyle:{color:colors},label:{show:true,position:'top',formatter:(p)=>{if(p.dataIndex===0) return items[0].val;if(p.dataIndex===items.length-1) return sum;return (data[p.dataIndex]>0?'+':'')+data[p.dataIndex];}}}]};},
+    users(){return line(['2025Q3','2025Q4','2026Q1','2026Q2','2026Q3','2026Q4','2027Q1','2027Q2','2027Q3','2027Q4'],[{name:'用户数',data:[2000,5000,9000,14000,20000,30000,45000,65000,85000,100000],color:'#22c55e'}]);},
+    rc(){return {legend:{bottom:0},radar:{indicator:[{name:'智能组队',max:100},{name:'代码审查',max:100},{name:'论文辅助',max:100},{name:'赛题解析',max:100},{name:'社区',max:100},{name:'实战模拟',max:100}]},series:[{type:'radar',data:[{name:'数海引航',value:[85,80,78,82,75,74]},{name:'竞品A',value:[70,65,60,62,55,50]}]}]};},
+    inputstruct(){
+      const nodes=['题目','实体','约束','目标','数据','模型','评测'].map(name=>({name}));
+      const links=[
+        {source:'题目',target:'实体',value:6},
+        {source:'题目',target:'约束',value:5},
+        {source:'题目',target:'目标',value:4},
+        {source:'实体',target:'数据',value:5},
+        {source:'数据',target:'模型',value:4},
+        {source:'约束',target:'模型',value:3},
+        {source:'目标',target:'评测',value:4},
+        {source:'模型',target:'评测',value:5}
+      ];
+      return {
+        tooltip:{trigger:'item'},
+        series:[{type:'sankey',left:10,right:10,top:10,bottom:20,
+        data:nodes,links,emphasis:{focus:'adjacency'},
+        lineStyle:{color:'gradient',curveness:0.5},
+        label:{color:'#0f172a'} }]
+      };
+    }
+  };
+  return {
+    init(){
+      document.querySelectorAll('.chart[data-chart]').forEach(el=>{
+        if(el.offsetParent!==null && el.offsetWidth > 0){
+          const key=el.getAttribute('data-chart');
+          if(gens[key]) mount(el, gens[key]());
+        }
+      });
+      window.addEventListener('resize',()=>{ 
+        cache.forEach(ch=>{ if(ch && !ch.isDisposed()) ch.resize(); }); 
+      });
+    },
+    initSection(sectionId){
+      const section=document.getElementById(sectionId);
+      if(!section) return;
+      section.querySelectorAll('.chart[data-chart]').forEach(el=>{
+        const key=el.getAttribute('data-chart'); if(!gens[key]) return;
+        mount(el, gens[key]());
+      });
+    },
+    exportPNG(id){
+      const ch=echarts.getInstanceByDom(document.getElementById(id));
+      if(!ch) return;
+      const url=ch.getDataURL({type:'png',pixelRatio:2,backgroundColor:'#ffffff'});
+      const a=document.createElement('a'); a.href=url; a.download=id+'.png'; a.click();
+    }
+  };
+})();
+
+// ========== 智能组队 ==========
+let mySkills=[70,75,60,55,65,50];
+function cosine(a,b){const dot=a.reduce((s,v,i)=>s+v*b[i],0);const na=Math.sqrt(a.reduce((s,v)=>s+v*v,0));const nb=Math.sqrt(b.reduce((s,v)=>s+v*v,0));return dot/(na*nb);}
+const mockAPI={
+  teammates:(()=>{const names=["张思源","琚安臻","朱怡晨","于文昊","丁绍宇","纪家富","李佳明","宋万里","林一","周二","王五","赵六"];
+    return names.map((n,i)=>({id:i+1,name:n,skills:[R(40,95),R(40,95),R(40,95),R(40,95),R(40,95),R(40,95)],tags:P(["算法","Python","Java","LaTeX","可视化","线代","概率","运筹"],3)}));
+    function R(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+    function P(pool,k){return [...pool].sort(()=>Math.random()-0.5).slice(0,k)}
+  })(),
+  qaSeed:[
+    {id:1,title:"LSTM 长序列如何稳住梯度?",text:"注意力 or Transformer 是否更优?",votes:12,bounty:30},
+    {id:2,title:"MCM 论文图表规范清单",text:"字号/配色/编号/引用统一规则?",votes:9,bounty:20},
+    {id:3,title:"充电桩选址模型约束",text:"容量、覆盖、预算、交通网络与公平性约束如何写?",votes:15,bounty:50}
+  ]
+};
+
+function matchTeammates(){
+  const w=[1,1,1,1.2,1,1.2], me=mySkills.map((v,i)=>v*w[i]);
+  const res=mockAPI.teammates.map(t=>{
+    const tv=t.skills.map((v,i)=>v*w[i]);
+    const sim=cosine(me,tv);
+    const comp=(Math.abs(me[3]-tv[3])+Math.abs(me[5]-tv[5]))/200;
+    return {...t,score: +(sim*0.8 + comp*0.2).toFixed(3)};
+  }).sort((a,b)=>b.score-a.score).slice(0,6);
+
+  const list=document.getElementById('matchList'); list.innerHTML='';
+  res.forEach(t=>{
+    list.insertAdjacentHTML('beforeend',`
+<div class="match">
+  <div class="flex">
+    <span class="avatar">${t.name.slice(-1)}</span>
+    <b>${t.name}</b>
+    <span class="right chip">匹配 ${Math.round(t.score*100)}%</span>
+  </div>
+  <div class="muted" style="font-size:12px;margin:6px 0;">技能:${t.skills.map(v=>v.toString().padStart(2,' ')).join(' / ')}</div>
+  <div class="grid" style="grid-template-columns:repeat(3,auto);gap:6px;margin-top:4px;">
+    ${t.tags.map(x=>`<span class="chip">${x}</span>`).join('')}
+  </div>
+  <div class="toolbar" style="margin-top:6px">
+    <button class="btn" onclick="Contacts.add(${t.id},'${t.name.replace(/'/g,"\\'")}')">加入通讯录</button>
+    <button class="btn primary" onclick="ChatUI.openWith(${t.id},'${t.name.replace(/'/g,"\\'")}')">私聊</button>
+  </div>
+</div>`);
+  });
+}
+
+// 实时更新雷达
+document.querySelectorAll('.skill').forEach(sl=>{
+  sl.addEventListener('input',e=>{
+    const i=+e.target.dataset.i; mySkills[i]=+e.target.value;
+    const el=document.getElementById('chart-radar'); const chart=echarts.getInstanceByDom(el);
+    if(chart && !chart.isDisposed()){ chart.setOption({series:[{data:[{name:'我',value:mySkills}]}]},{merge:'mixin'}); }
+  });
+});
+
+// ========== 代码审查 ==========
+function runReview(){
+  if(!API.key){ tipNeedAPI(); return; }
+  const code=document.getElementById('code').value;
+  const out=document.getElementById('reviewOut');
+  const findings=[];
+  if(/for\s*\(\s*int\s+i=0;.*for\s*\(\s*int\s+j=i\+1/im.test(code) || /for .*:\s*for/im.test(code)){
+    findings.push('时间复杂度可能为 O(n^2),可用哈希表降至 O(n)。');
+  }
+  if(code.length<10) findings.push('代码为空或过短,请粘贴真实片段。');
+  const fix=`# Python 示例:O(n) 解
+def two_sum(nums, target):
+    mp={}
+    for i,x in enumerate(nums):
+        if target-x in mp: return [mp[target-x], i]
+        mp[x]=i
+    return []`;
+  out.innerHTML = `
+  <div class="chip" style="background:#e8f0fe;border-color:#c7d2fe;color:#1e3a8a;">发现 ${findings.length} 项问题</div>
+  <ul>${findings.map(x=>`<li>${escapeHTML(x)}</li>`).join('')}</ul>
+  <div style="margin-top:8px"><b>修复建议</b></div>
+  <pre style="white-space:pre-wrap;background:#fff;border:1px solid var(--line);padding:8px;border-radius:8px;">${escapeHTML(fix)}</pre>`;
+}
+function insertSnippet(){
+  document.getElementById('code').value = `def two_sum(nums, target):
+    for i in range(len(nums)):
+        for j in range(i+1, len(nums)):
+            if nums[i] + nums[j] == target:
+                return [i, j]
+    return []`;
+}
+
+// ========== 赛题解析 - 增强版 ==========
+function analyzeRAG(){
+  if(!API.key){ tipNeedAPI(); return; }
+  const raw=document.getElementById('ragInput').value.trim();
+  const out=document.getElementById('ragOut');
+  if(!raw){ out.textContent='请先粘贴赛题描述。'; return; }
+
+  // 简单实体/约束/目标提取
+  const ents=[...new Set((raw.match(/[\u4e00-\u9fa5A-Za-z0-9]{2,}/g)||[]))].slice(0,10);
+  const constraints = [];
+  if(/时间|耗时|秒|分钟/.test(raw)) constraints.push('时间限制');
+  if(/内存|空间|GB|MB/.test(raw)) constraints.push('内存限制');
+  if(/精度|误差|准确率/.test(raw)) constraints.push('精度要求');
+  if(/并行|多线程|分布式/.test(raw)) constraints.push('并行要求');
+  const objectives = [];
+  if(/最小|最少|最低/.test(raw)) objectives.push('最小化目标');
+  if(/最大|最多|最高/.test(raw)) objectives.push('最大化目标');
+  if(/优化|改进|提升/.test(raw)) objectives.push('优化目标');
+  const suggestions = [];
+  if(/图|网络|节点|边/.test(raw)) suggestions.push('考虑图论算法(如最短路径、最小生成树)');
+  if(/排序|查找|搜索/.test(raw)) suggestions.push('考虑高效的排序或搜索算法');
+  if(/动态规划|DP|状态转移/.test(raw)) suggestions.push('考虑动态规划方法');
+  if(/机器学习|神经网络|训练/.test(raw)) suggestions.push('考虑机器学习或深度学习模型');
+
+  out.innerHTML = `
+  <div><b>赛题解析结果</b></div>
+  <div style="margin-top:10px">
+    <div class="chip" style="background:#e8f0fe;margin-right:8px">实体识别</div>
+    ${ents.map(x=>`<span class="chip">${escapeHTML(x)}</span>`).join('')}
+  </div>
+  <div style="margin-top:10px">
+    <div class="chip" style="background:#e8f0fe;margin-right:8px">约束条件</div>
+    ${constraints.map(x=>`<span class="chip">${x}</span>`).join('')}
+  </div>
+  <div style="margin-top:10px">
+    <div class="chip" style="background:#e8f0fe;margin-right:8px">目标函数</div>
+    ${objectives.map(x=>`<span class="chip">${x}</span>`).join('')}
+  </div>
+  <div style="margin-top:10px">
+    <div class="chip" style="background:#e8f0fe;margin-right:8px">解题思路建议</div>
+    <ul style="margin-top:5px;padding-left:20px">${suggestions.map(x=>`<li>${x}</li>`).join('')}</ul>
+  </div>
+  <div class="muted" style="margin-top:10px">已根据输入更新可视结构图。</div>`;
+
+  const el=document.getElementById('c-input-structure'); 
+  const ch=echarts.getInstanceByDom(el);
+  if(ch && !ch.isDisposed()){ 
+    const nodes = ['题目', ...ents.slice(0,5), '模型', '评测'];
+    const links = [
+      {source:'题目', target:ents[0]||'实体1', value:5},
+      {source:'题目', target:ents[1]||'实体2', value:4},
+      {source:'题目', target:ents[2]||'实体3', value:3},
+      {source:ents[0]||'实体1', target:'模型', value:4},
+      {source:ents[1]||'实体2', target:'模型', value:3},
+      {source:'模型', target:'评测', value:6}
+    ];
+    ch.setOption({ series:[{ data: nodes.map(name=>({name})), links }] }, true);
+  }
+}
+
+// ========== 真题墙集成 ==========
+const zhenURLByMode={
+  home:'https://zhentiqiang.com/',
+  math:'https://zhentiqiang.com/?tab=math',
+  english:'https://zhentiqiang.com/?tab=english',
+  cs:'https://zhentiqiang.com/?tab=cs'
+};
+document.getElementById('zhenMode').addEventListener('change',e=>{
+  const url=zhenURLByMode[e.target.value]||zhenURLByMode.home;
+  document.getElementById('zhenFrame').src=url;
+});
+function openZhentiInNew(){
+  const sel=document.getElementById('zhenMode').value;
+  const url=zhenURLByMode[sel]||zhenURLByMode.home;
+  window.open(url,'_blank','noopener');
+}
+
+// ========== 计时器/答辩/评分 ==========
+let timerId=null; let isPaused=false; let leftSec=8*3600;
+function updateTimerDisplay() {
+  const hours = parseInt(document.getElementById('timeInput').value) || 8;
+  leftSec = hours * 3600;
+  document.getElementById('timer').textContent = fmt(leftSec);
+}
+function fmt(sec){ 
+  const h=String(Math.floor(sec/3600)).padStart(2,'0'); 
+  const m=String(Math.floor(sec%3600/60)).padStart(2,'0'); 
+  const s=String(sec%60).padStart(2,'0'); 
+  return `${h}:${m}:${s}`; 
+}
+function startTimer(){
+  if(timerId) clearInterval(timerId);
+  const stress=document.getElementById('stress').value;
+  const hours = parseInt(document.getElementById('timeInput').value) || 8;
+  leftSec = hours * 3600;
+  if(stress==='time') leftSec=Math.floor(leftSec*0.7);
+  if(stress==='all') leftSec=Math.floor(leftSec*0.6);
+  isPaused=false;
+  timerId=setInterval(()=>{ 
+    if(!isPaused) {
+      leftSec=Math.max(0,leftSec-1); 
+      document.getElementById('timer').textContent=fmt(leftSec); 
+      if(leftSec===0) { clearInterval(timerId); alert('时间到!请提交你的答案。'); }
+    }
+  },1000);
+}
+function pauseTimer(){ isPaused = !isPaused; }
+function resetTimer(){ clearInterval(timerId); timerId=null; isPaused=false; updateTimerDisplay(); }
+
+const defenseQuestions = [
+  "请简要说明你的算法设计思路和核心创新点。","你的方法在时间复杂度和空间复杂度上有什么优势?","与现有方法相比,你的方案解决了哪些关键问题?",
+  "在实验中遇到的最大挑战是什么?你是如何解决的?","你的方法有哪些局限性?未来如何改进?","请解释一下你的模型中的关键参数设置及其影响。",
+  "如何验证你的实验结果的有效性和可靠性?","你的研究对实际应用有什么价值?","如果数据规模扩大10倍,你的方法还能保持性能吗?","请说明你的代码架构和模块设计思路。"
+];
+function generateQuestion(){
+  const box = document.getElementById('defenseQuestion');
+  const idx = Math.floor(Math.random() * defenseQuestions.length);
+  box.innerHTML = `<b>答辩问题:</b> ${defenseQuestions[idx]}`;
+  document.getElementById('defenseAnswer').value = '';
+  document.getElementById('defenseResult').style.display = 'none';
+}
+function submitDefense(){
+  const answer = document.getElementById('defenseAnswer').value.trim();
+  if(!answer){ alert('请先输入答辩回答!'); return; }
+  const logicScore = 8 + Math.floor(Math.random() * 3);
+  const accuracyScore = 7 + Math.floor(Math.random() * 4);
+  const fluencyScore = 8 + Math.floor(Math.random() * 3);
+  const responseScore = 7 + Math.floor(Math.random() * 4);
+  const totalScore = logicScore + accuracyScore + fluencyScore + responseScore;
+  const percentage = Math.round((totalScore / 40) * 100);
+  let scoreClass = 'score-poor';
+  if(percentage >= 90) scoreClass = 'score-excellent';
+  else if(percentage >= 80) scoreClass = 'score-good';
+  else if(percentage >= 70) scoreClass = 'score-fair';
+  document.getElementById('defenseScore').textContent = `${percentage}/100`;
+  document.getElementById('defenseScore').className = `defense-score ${scoreClass}`;
+  const feedback = `维度评估:
+- 逻辑性: ${logicScore}/10 ${logicScore>=9?'✓ 逻辑清晰,论证严密':logicScore>=7?'逻辑基本清晰':'需要加强逻辑性'}
+- 准确性: ${accuracyScore}/10 ${accuracyScore>=9?'✓ 回答准确,数据可靠':accuracyScore>=7?'回答基本准确':'需要提高准确性'}
+- 流畅度: ${fluencyScore}/10 ${fluencyScore>=9?'✓ 表达流畅,节奏适中':fluencyScore>=7?'表达基本流畅':'需要提高表达流畅度'}
+- 应对能力: ${responseScore}/10 ${responseScore>=9?'✓ 对追问反应迅速':responseScore>=7?'应对能力尚可':'需要加强应变能力'}
+
+改进建议:
+1. 增加更多实际案例支撑
+2. 优化开场白,吸引评委注意
+3. 肢体语言可更自然些
+4. 准备更多数据支撑你的论点`;
+  document.getElementById('defenseFeedback').textContent = feedback;
+  document.getElementById('defenseResult').style.display = 'block';
+}
+function recordVideo(){
+  alert('视频录制功能需要浏览器权限。请允许使用摄像头和麦克风。\n\n提示:在实际环境中,这里会调用浏览器的MediaRecorder API进行录制。');
+}
+function evaluate(){
+  const txt=document.getElementById('simInput').value.trim();
+  const stress=document.getElementById('stress').value;
+  if(!txt){ alert('请先描述你的方法与实验结果!'); return; }
+  let algoScore = 70;
+  if(/创新|新颖/.test(txt)) algoScore+=10;
+  if(/高效|优化/.test(txt)) algoScore+=8;
+  if(/复杂度|O\(/.test(txt)) algoScore+=5;
+  let implScore = 75;
+  if(/鲁棒|健壮/.test(txt)) implScore+=8;
+  if(/测试|验证/.test(txt)) implScore+=7;
+  if(/代码|实现/.test(txt)) implScore+=5;
+  let defenseScore = 80;
+  if(/清晰|明确/.test(txt)) defenseScore+=8;
+  if(/逻辑|论证/.test(txt)) defenseScore+=7;
+  if(/数据|结果/.test(txt)) defenseScore+=5;
+  if(stress==='noise') { algoScore-=3; implScore-=5; }
+  if(stress==='change') { algoScore-=5; implScore-=3; defenseScore-=2; }
+  if(stress==='all') { algoScore-=8; implScore-=8; defenseScore-=5; }
+  algoScore=Math.max(0,Math.min(100,algoScore));
+  implScore=Math.max(0,Math.min(100,implScore));
+  defenseScore=Math.max(0,Math.min(100,defenseScore));
+  const totalScore = Math.round((algoScore + implScore + defenseScore) / 3);
+  document.getElementById('scoreAlgo').textContent = algoScore;
+  document.getElementById('scoreAlgo').style.color = getScoreColor(algoScore);
+  document.getElementById('scoreImpl').textContent = implScore;
+  document.getElementById('scoreImpl').style.color = getScoreColor(implScore);
+  document.getElementById('scoreDefense').textContent = defenseScore;
+  document.getElementById('scoreDefense').style.color = getScoreColor(defenseScore);
+  const adviceText = `综合评分: ${totalScore}/100
+
+详细分析:
+1. 算法设计 (${algoScore}/100): ${algoScore>=80?'设计合理,考虑全面':algoScore>=60?'基本满足要求,有改进空间':'需要重新审视算法设计'}
+2. 实现质量 (${implScore}/100): ${implScore>=80?'代码规范,实现完整':implScore>=60?'实现基本正确,但可优化':'需要加强代码实现和测试'}
+3. 答辩表现 (${defenseScore}/100): ${defenseScore>=80?'表达清晰,应对自如':defenseScore>=60?'表达基本清楚':'需要加强表达和沟通能力'}
+
+优化建议:
+${generateAdvice(algoScore, implScore, defenseScore, stress)}`;
+  document.getElementById('advice').textContent = adviceText;
+}
+function getScoreColor(score){ if(score>=90) return '#22c55e'; if(score>=80) return '#2563eb'; if(score>=70) return '#f59e0b'; return '#ef4444'; }
+function generateAdvice(algoScore, implScore, defenseScore, stress){
+  let advice=[];
+  if(algoScore < 80){ advice.push('• 深入分析问题本质,考虑更多边界情况'); advice.push('• 研究相关文献,借鉴先进算法思想'); advice.push('• 进行更充分的复杂度分析'); }
+  if(implScore < 80){ advice.push('• 加强代码测试,包括单元测试和集成测试'); advice.push('• 优化代码结构,提高可读性和可维护性'); advice.push('• 考虑性能优化和内存管理'); }
+  if(defenseScore < 80){ advice.push('• 提前准备答辩内容,进行多次模拟演练'); advice.push('• 学习有效的表达技巧和肢体语言'); advice.push('• 准备应对评委可能提出的问题'); }
+  if(stress !== 'none'){ advice.push('• 加强在压力环境下的应变能力训练'); advice.push('• 建立团队协作机制,提高沟通效率'); advice.push('• 制定应急预案,应对突发状况'); }
+  return advice.join('\n');
+}
+function generateReport(){
+  alert('正在生成详细评估报告...\n\n在实际环境中,这里会生成PDF格式的详细报告,包括:\n1. 各项维度评分详情\n2. 改进建议清单\n3. 与其他参赛者的对比分析\n4. 个性化学习路线图');
+}
+
+// ========== 工具/认证 ==========
+function escapeHTML(s){return s.replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
+const $=id=>document.getElementById(id);
+const API={ key: localStorage.getItem('apiKey')||'' };
+const Auth={
+  users: JSON.parse(localStorage.getItem('users')||'{}'),
+  token: localStorage.getItem('token')||'',
+  login(u,p,remember){
+    const ok = (this.users[u] && this.users[u].pass===p) || (u==='demo@example.com'&&p==='123456');
+    if(!ok) return {ok:false,msg:'账号或密码错误'};
+    const token='tk_'+Date.now();
+    if(remember) localStorage.setItem('token',token);
+    sessionStorage.setItem('token',token);
+    sessionStorage.setItem('who',u);
+    const api = (this.users[u]&&this.users[u].apiKey)||'';
+    if(api){ localStorage.setItem('apiKey',api); API.key=api; }
+    return {ok:true,token};
+  },
+  register(name,mail,pass,apiKey){
+    if(!/^\S+@\S+\.\S+$/.test(mail)) return {ok:false,msg:'邮箱格式不正确'};
+    if(pass.length<6 || !/[a-zA-Z]/.test(pass) || !/\d/.test(pass)) return {ok:false,msg:'密码需含字母与数字且不少于 6 位'};
+    if(this.users[mail]) return {ok:false,msg:'该邮箱已注册'};
+    this.users[mail]={name,pass,apiKey:apiKey||''};
+    localStorage.setItem('users',JSON.stringify(this.users));
+    return {ok:true};
+  },
+  logout(){ sessionStorage.removeItem('token'); sessionStorage.removeItem('who'); }
+};
+const AuthUI={
+  switchTab(which){
+    const isLogin=which==='login';
+    $('tabLogin').classList.toggle('active',isLogin);
+    $('tabRegister').classList.toggle('active',!isLogin);
+    $('loginForm').style.display = isLogin?'':'none';
+    $('registerForm').style.display = isLogin?'none':'';
+  }
+};
+function authLogin(){
+  const u=$('loginUser').value.trim();
+  const p=$('loginPass').value.trim();
+  const remember=$('remember').checked;
+  const apiIn=$('loginAPI').value.trim();
+  const r=Auth.login(u,p,remember);
+  if(!r.ok){ alert(r.msg); return; }
+  if(apiIn){ localStorage.setItem('apiKey',apiIn); API.key=apiIn; }
+  afterLogin(u);
+}
+function authRegister(){
+  const name=$('regName').value.trim();
+  const mail=$('regMail').value.trim();
+  const pass=$('regPass').value.trim();
+  const api=$('regAPI').value.trim();
+  const r=Auth.register(name,mail,pass,api);
+  if(!r.ok){ alert(r.msg); return; }
+  alert('注册成功,请登录。' + (api?'':'\n提示:你尚未配置 API,可稍后在「API 设置」或登录页补充。'));
+  AuthUI.switchTab('login');
+  if(api){ localStorage.setItem('apiKey',api); API.key=api; }
+}
+function afterLogin(who){
+  $('who').textContent=who;
+  $('auth').style.display='none';
+  $('app').style.visibility='visible';
+  updateTimerDisplay();
+  setTimeout(()=>{ ChartManager.init(); },200);
+  renderQA();
+  checkAPI();
+  go('overview', document.querySelector('aside .nav button[data-go="overview"]'));
+}
+function logout(){ Auth.logout(); location.reload(); }
+function openAPIModal(){ $('apiKeyInput').value = API.key || ''; $('apiModal').style.display='flex'; }
+function closeAPIModal(){ $('apiModal').style.display='none'; }
+function saveAPI(){ const k=$('apiKeyInput').value.trim(); localStorage.setItem('apiKey',k); API.key=k; closeAPIModal(); checkAPI(); }
+function tipNeedAPI(){ alert('该功能依赖外部 API,请先在左侧「API 设置」或登录页配置 API Key。'); }
+function checkAPI(){ document.querySelectorAll('[data-requires-api="true"]').forEach(el=>{ el.classList.toggle('requires-mask', !API.key); }); }
+
+// ========== 社区 ==========
+function renderQA(){
+  const box=document.getElementById('qaList'); box.innerHTML='';
+  mockAPI.qaSeed.forEach(q=>{
+    box.insertAdjacentHTML('beforeend',`
+<div class="card">
+  <div class="flex"><b>${escapeHTML(q.title)}</b><span class="right chip">赏金 ${q.bounty}</span></div>
+  <div class="muted">${escapeHTML(q.text)}</div>
+  <div class="flex" style="margin-top:6px;">
+    <span class="chip">票数 ${q.votes}</span>
+    <span class="chip">#问答</span>
+  </div>
+</div>`);
+  });
+}
+function postQA(){
+  const t=$('qaTitle').value.trim();
+  const x=$('qaText').value.trim();
+  if(!t||!x) return;
+  mockAPI.qaSeed.unshift({id:Date.now(),title:t,text:x,votes:0,bounty:10});
+  $('qaTitle').value=''; $('qaText').value='';
+  renderQA();
+}
+
+// ========== 通讯录与私聊(真正可用: 本地持久 + BroadcastChannel 多标签同步) ==========
+const Contacts={
+  key(){ const me=sessionStorage.getItem('who')||'guest'; return `contacts_${me}`; },
+  list(){ try{ return JSON.parse(localStorage.getItem(this.key())||'[]'); }catch{return []} },
+  save(arr){ localStorage.setItem(this.key(), JSON.stringify(arr)); ChatUI.refreshList(); },
+  add(id,name){
+    const arr=this.list();
+    if(!arr.some(c=>c.id===id)) arr.push({id,name});
+    this.save(arr);
+    // 提示并可直接聊天
+    ChatUI.openWith(id,name);
+  }
+};
+
+const Chat={
+  channel: new BroadcastChannel('sh-chat'),
+  keyFor(userId){ const me=sessionStorage.getItem('who')||'guest'; return `chat_${me}_${userId}`; },
+  load(userId){ try{ return JSON.parse(localStorage.getItem(this.keyFor(userId))||'[]'); }catch{return []} },
+  save(userId, msgs){ localStorage.setItem(this.keyFor(userId), JSON.stringify(msgs)); },
+  send(userId,text){
+    const me=sessionStorage.getItem('who')||'guest';
+    const msgs=this.load(userId);
+    const msg={from:me,to:userId,text,ts:Date.now()};
+    msgs.push(msg); this.save(userId,msgs);
+    this.channel.postMessage({type:'msg',userId,from:me,text,ts:msg.ts});
+  }
+};
+// 接收其它标签的消息并刷新UI
+Chat.channel.onmessage=(ev)=>{
+  const data=ev.data||{};
+  if(data.type==='msg'){
+    if(ChatUI.current && (ChatUI.current.id===data.userId || data.from===ChatUI.current.id)){
+      ChatUI.renderMessages(ChatUI.current.id);
+    }
+  }else if(data.type==='contacts'){
+    ChatUI.refreshList();
+  }
+};
+
+const ChatUI={
+  current:null,
+  refs(){ return { list: $('chatList'), box: $('messageBox'), input: $('chatText') }; },
+  refresh(){ this.refreshList(); if(this.current) this.renderMessages(this.current.id); },
+  refreshList(){
+    const {list}=this.refs();
+    const contacts=Contacts.list();
+    list.innerHTML='';
+    if(contacts.length===0){ list.innerHTML='<div class="muted" style="padding:6px">暂无联系人</div>'; return; }
+    contacts.forEach(c=>{
+      const active=this.current&&this.current.id===c.id;
+      const el=document.createElement('div');
+      el.className='contact'+(active?' active':'');
+      el.innerHTML=`<span class="avatar">${c.name.slice(-1)}</span><span class="ct-name">${c.name}</span>`;
+      el.onclick=()=>this.openWith(c.id,c.name);
+      list.appendChild(el);
+    });
+  },
+  openWith(id,name){
+    const contacts=Contacts.list();
+    if(!contacts.some(c=>c.id===id)){ Contacts.add(id,name); Chat.channel.postMessage({type:'contacts'}); }
+    this.current={id,name};
+    UI.toggleChat(); // 打开抽屉
+    this.refresh();
+  },
+  renderMessages(userId){
+    const {box}=this.refs(); box.innerHTML='';
+    const msgs=Chat.load(userId);
+    msgs.forEach(m=>{
+      const div=document.createElement('div');
+      div.className='msg '+(m.from===(sessionStorage.getItem('who')||'guest')?'me':'you');
+      const t=new Date(m.ts); const time=`${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}`;
+      div.innerHTML=`<div style="font-size:12px;color:#64748b;margin-bottom:2px">${time}</div><div>${escapeHTML(m.text)}</div>`;
+      box.appendChild(div);
+    });
+    box.scrollTop=box.scrollHeight;
+  },
+  send(){
+    const {input}=this.refs();
+    const text=input.value.trim();
+    if(!text) return;
+    if(!this.current){ alert('请选择联系人'); return; }
+    Chat.send(this.current.id,text);
+    input.value='';
+    this.renderMessages(this.current.id);
+  }
+};
+$('chatText').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); ChatUI.send(); }});
+
+// ========== 页面加载 ==========
+window.addEventListener('DOMContentLoaded', () => {
+  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+  const who = sessionStorage.getItem('who');
+  if(token && who) { afterLogin(who); }
+});
+
+// ========== API/登录后初始化 ==========
+function checkContactsBroadcast(){ Chat.channel.postMessage({type:'contacts'}); }
+</script>
+</body>
+</html>
